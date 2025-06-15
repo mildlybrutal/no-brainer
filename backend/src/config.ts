@@ -1,0 +1,1 @@
+export const JWT_USER_PASSWORD:string = "SE3RET"
