@@ -17,10 +17,11 @@ authRoutes.post("/signup", async (req: Request, res: Response) => {
         const parsedDataWithSuccess = requiredBody.safeParse(req.body);
 
         if (!parsedDataWithSuccess.success) {
-            return res.status(400).json({
+            res.status(400).json({
                 message: "Incorrect format",
                 error: parsedDataWithSuccess.error,
             });
+            return
         }
 
         const { username, password } = parsedDataWithSuccess.data;
@@ -29,9 +30,10 @@ authRoutes.post("/signup", async (req: Request, res: Response) => {
 
         const existingUser = await UserModel.findOne({ username });
         if (existingUser) {
-            return res.status(400).json({
+            res.status(400).json({
                 message: "User already exists",
             });
+            return
         }
 
         await UserModel.create({
@@ -39,14 +41,16 @@ authRoutes.post("/signup", async (req: Request, res: Response) => {
             password: hashedPassword,
         });
 
-        return res.status(201).json({
+        res.status(201).json({
             message: "Signup successful",
         });
+        return;
     } catch (error) {
         console.error("Signup error:", error);
-        return res.status(500).json({
+        res.status(500).json({
             message: "Internal server error",
         });
+        return
     }
 });
 
@@ -60,10 +64,11 @@ authRoutes.post("/signin", async (req: Request, res: Response) => {
         const parsedDataWithSuccess = requiredBody.safeParse(req.body);
 
         if (!parsedDataWithSuccess.success) {
-            return res.status(400).json({
+            res.status(400).json({
                 message: "Incorrect format",
                 error: parsedDataWithSuccess.error,
             });
+            return
         }
 
         const username = req.body.username;
@@ -74,17 +79,19 @@ authRoutes.post("/signin", async (req: Request, res: Response) => {
         });
 
         if (!response) {
-            return res.status(401).json({
+            res.status(401).json({
                 message: "Invalid username or password",
             });
+            return
         }
 
         const checkPassword = await bcrypt.compare(password, response.password);
 
         if(!checkPassword){
-            return res.status(401).json({
+            res.status(401).json({
                 message:"Invalid username or password"
             })
+            return
         }
 
         if (response && checkPassword) {
@@ -98,19 +105,22 @@ authRoutes.post("/signin", async (req: Request, res: Response) => {
                 }
             );
 
-            return res.status(200).json({
+            res.status(200).json({
                 token: token,
                 message: "Signed-in successfully",
             });
+            return
         } else {
-            return res.status(403).json({
+            res.status(403).json({
                 message: "invalid creds",
             });
+            return
         }
     } catch (error) {
         res.status(500).json({
             message: "Signin failed",
         });
+        return
     }
 });
 
