@@ -88,7 +88,7 @@ authRoutes.post("/signin", async (req: Request, res: Response) => {
         const checkPassword = await bcrypt.compare(password, response.password);
 
         if(!checkPassword){
-            res.status(401).json({
+            res.status(403).json({
                 message:"Invalid username or password"
             })
             return
