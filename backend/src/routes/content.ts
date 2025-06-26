@@ -3,6 +3,11 @@ import { z } from "zod";
 
 import { ContentModel, UserModel } from "../db";
 
+
+interface AuthRequest extends Request {
+    userId?: string;
+}
+
 const contentRoutes = Router();
 
 const createContentSchema = z.object({
@@ -31,56 +36,32 @@ contentRoutes.post("/", async (req: Request, res: Response) => {
     }
 });
 
-contentRoutes.get("/", async (req: Request, res: Response) => {
+contentRoutes.get("/", async (req: AuthRequest, res: Response) => {
     try {
-        const { userId } = req.query;
-        if (!userId) {
-            res.status(500).json({
-                message: "userId is required",
-            });
-            return;
-        }
-        const user = await UserModel.findById(userId);
-
-        if (!user) {
-            res.status(404).json({
-                message: "User does not exist",
-            });
-            return;
-        }
-
-        const content = await ContentModel.find({
-            userId: userId,
-        });
-
-        if (!content) {
-            res.status(500).json({
-                message: "content does not exist",
-            });
-            return;
-        }
+        const userId = req.userId;
+        const content = await ContentModel.find({ userId }).populate('tags');
 
         res.status(200).json({
-            message: "content fetching succesfull",
-            Content: content,
+            message: "Content fetched successfully",
+            content: content,
         });
     } catch (error) {
-        res.status(500).json({
-            message: "failed to fetch content",
-        });
-        return;
+        res.status(500).json({ message: "Failed to fetch content" });
     }
 });
 
-contentRoutes.delete("/", async (req: Request, res: Response) => {
+contentRoutes.delete("/:contentId", async (req: AuthRequest, res: Response) => {
     try {
         const { contentId } = req.params;
-
-        const content = await ContentModel.findByIdAndDelete(contentId);
+        const userId = req.userId
+        const content = await ContentModel.findByIdAndDelete({
+            _id:contentId,
+            userId : userId
+        });
 
         if (!content) {
-            res.status(403).json({
-                message: "Trying to delete a doc you don’t own",
+            res.status(404).json({
+                message: "Content not found or unauthorized",
             });
             return;
         }
@@ -96,3 +77,5 @@ contentRoutes.delete("/", async (req: Request, res: Response) => {
         });
     }
 });
+
+export {contentRoutes}

@@ -97,18 +97,69 @@ export const TagsModel = model<ITags>("Tags", tagsSchema);
 interface ILink {
     hash: string;
     userId: ObjectId;
+    contentIds: ObjectId[];
+    shareType: "content" | "brain" | "collection";
+    permissions: {
+        canView: boolean;
+        canDownload: boolean;
+        expiresAt?: Date;
+    };
+    isActive: boolean;
+    accessCount: number;
+    createdAt: Date;
+    lastAccessedAt?: Date;
 }
 
-const linkSchema = new Schema<ILink>({
-    hash: {
-        type: String,
-        required: true,
+const linkSchema = new Schema<ILink>(
+    {
+        hash: {
+            type: String,
+            required: true,
+            unique: true,
+            index: true,
+        },
+        userId: {
+            type: Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        contentIds: [
+            {
+                type: Types.ObjectId,
+                ref: "Content",
+            },
+        ],
+
+        shareType: {
+            type: String,
+            enum: ["content", "brain", "collection"],
+            default: "brain",
+        },
+        permissions: {
+            canView: {
+                type: Boolean,
+                default: true,
+            },
+            canDownload: {
+                type: Boolean,
+                default: false,
+            },
+            expiresAt: {
+                type: Date,
+            },
+        },
+        isActive: { type: Boolean, default: true },
+        accessCount: { type: Number, default: 0 },
+        lastAccessedAt: { type: Date },
     },
-    userId: {
-        type: Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-});
+    {
+        timestamps: true,
+    }
+);
 
 export const LinkModel = model<ILink>("Link", linkSchema);
+
+userSchema.index({ username: 1 });
+contentSchema.index({ userId: 1 });
+contentSchema.index({ type: 1 });
+linkSchema.index({ hash: 1 });
