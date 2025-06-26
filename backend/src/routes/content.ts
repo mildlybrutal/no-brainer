@@ -18,9 +18,14 @@ const createContentSchema = z.object({
     userId: z.string(),
 });
 
-contentRoutes.post("/", async (req: Request, res: Response) => {
+contentRoutes.post("/", async (req: AuthRequest, res: Response) => {
     try {
-        const validatedData = createContentSchema.parse(req.body);
+        const { link, type, title, tags } = req.body;
+        const userId = req.userId;
+
+        const validatedData = createContentSchema.parse({
+            link, type, title, tags, userId
+        });
 
         const content = await ContentModel.create(validatedData);
 
@@ -54,7 +59,7 @@ contentRoutes.delete("/:contentId", async (req: AuthRequest, res: Response) => {
     try {
         const { contentId } = req.params;
         const userId = req.userId
-        const content = await ContentModel.findByIdAndDelete({
+        const content = await ContentModel.findOneAndDelete({
             _id:contentId,
             userId : userId
         });

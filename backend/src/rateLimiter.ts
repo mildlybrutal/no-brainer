@@ -12,7 +12,7 @@ interface RequestCounts {
 const requestCounts: RequestCounts = {};
 
 const rateLimiter = (req: Request, res: Response, next: NextFunction): void => {
-    const ip: string = req.ip || req.connection.remoteAddress || "unknown";
+    const ip: string = req.ip || req.socket.remoteAddress || "unknown";
     const now: number = Date.now();
 
     if (!requestCounts[ip]) {

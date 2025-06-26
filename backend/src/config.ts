@@ -1,1 +1,1 @@
-export const JWT_USER_PASSWORD:string = "SE3RET"
+export const JWT_USER_PASSWORD = process.env.JWT_SECRET||"SE3RET"
